@@ -1,0 +1,42 @@
+# Software Information
+display_name = "Nintendo - DS (ntremu)"
+authors = "Burhan Rajgara|Jonian Guveli"
+supported_extensions = "nds"
+corename = "ntremu"
+license = "MPL-2.0"
+permissions = "microphone_optional"
+display_version = "Git"
+categories = "Emulator"
+
+# Hardware Information
+manufacturer = "Nintendo"
+systemname = "Nintendo DS"
+systemid = "nds"
+
+# Libretro Features
+database = "Nintendo - Nintendo DS|Nintendo - Nintendo DS (Download Play)"
+supports_no_game = "true"
+cheats = "true"
+core_options = "true"
+savestate = "true"
+savestate_features = "serialized"
+load_subsystem = "true"
+needs_fullpath = "true"
+disk_control = "false"
+hw_render = "false"
+experimental = "true"
+
+# Firmware / BIOS
+firmware_count = 5
+firmware0_desc = "firmware.bin (NDS Firmware)"
+firmware0_path = "firmware.bin"
+firmware0_opt = "true"
+firmware1_desc = "bios7.bin (ARM7 BIOS)"
+firmware1_path = "bios7.bin"
+firmware1_opt = "true"
+firmware2_desc = "bios9.bin (ARM9 BIOS)"
+firmware2_path = "bios9.bin"
+firmware2_opt = "true"
+notes = "(!) bios7.bin (md5): df692a80a5b1bc90728bc3dfc76cd948|(!) bios9.bin (md5): a392174eb3e572fed6447e956bde4b25"
+
+description = "A Nintendo DS Emulator that can play many games, but some may still be buggy."

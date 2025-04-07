@@ -1,0 +1,78 @@
+NAME := ntremu_libretro
+CC := gcc
+
+CFLAGS := -Wall -Wimplicit-fallthrough -Wno-format -Werror
+CFLAGS_RELEASE := -O3 -flto
+CFLAGS_DEBUG := -g
+
+CPPFLAGS := -MP -MMD
+LDFLAGS := -lm
+
+ifeq ($(shell uname),Darwin)
+	CPPFLAGS += -I$(shell brew --prefix)/include
+	LDFLAGS := -L$(shell brew --prefix)/lib $(LDFLAGS)
+endif
+
+GIT_VERSION := $(shell git describe --abbrev=7 --always)
+ARGS := -D__LIBRETRO__ -DVERSION=\"$(GIT_VERSION)\"
+
+ifeq ($(OS),Windows_NT)
+  ARGS += -static -DWINDOWS
+  SHARED_EXT := .dll
+else
+  ifeq ($(shell uname -s),Darwin)
+    ARGS += -DMACOS
+    SHARED_EXT := .dylib
+  else
+    SHARED_EXT := .so
+  endif
+endif
+
+TARGET_LIB = $(NAME)$(SHARED_EXT)
+
+BUILD_DIR := build-libretro
+SRC_DIR := src
+
+DEBUG_DIR := $(BUILD_DIR)/debug
+RELEASE_DIR := $(BUILD_DIR)/release
+
+EXCLUDE := debugger.c main.c
+
+SRCS := $(shell find $(SRC_DIR) -name '*.c' $(foreach file,$(EXCLUDE),! -name $(file)))
+SRCS := $(SRCS:$(SRC_DIR)/%=%)
+
+OBJS_DEBUG := $(SRCS:%.c=$(DEBUG_DIR)/%.o)
+DEPS_DEBUG := $(OBJS_DEBUG:.o=.d)
+
+OBJS_RELEASE := $(SRCS:%.c=$(RELEASE_DIR)/%.o)
+DEPS_RELEASE := $(OBJS_RELEASE:.o=.d)
+
+.PHONY: release, debug, clean
+
+release: CFLAGS += $(CFLAGS_RELEASE)
+release: $(RELEASE_DIR)/$(TARGET_LIB)
+
+debug: CFLAGS += $(CFLAGS_DEBUG)
+debug: $(DEBUG_DIR)/$(TARGET_LIB)
+
+$(RELEASE_DIR)/$(TARGET_LIB): $(OBJS_RELEASE)
+	$(CC) -shared -o $@ $(CFLAGS) $(CPPFLAGS) $(ARGS) $^ $(LDFLAGS)
+	cp $@ $(TARGET_LIB)
+
+$(RELEASE_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(ARGS) -c $< -o $@
+
+$(DEBUG_DIR)/$(TARGET_LIB): $(OBJS_DEBUG)
+	$(CC) -shared -o $@ $(CFLAGS) $(CPPFLAGS) $(ARGS) $^ $(LDFLAGS)
+	cp $@ $(TARGET_LIB)
+
+$(DEBUG_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(ARGS) -c $< -o $@
+
+clean:
+	rm -rf $(BUILD_DIR) $(TARGET_LIB)
+
+-include $(DEPS_DEBUG)
+-include $(DEPS_RELEASE)

@@ -15,3 +15,6 @@ release
 perf*
 
 .DS_Store
+
+build-libretro
+!ntremu_libretro.info
